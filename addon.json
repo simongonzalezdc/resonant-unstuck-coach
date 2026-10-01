@@ -1,0 +1,101 @@
+{
+  "id": "addon.unstuck-coach",
+  "name": "Unstuck Coach",
+  "version": "0.1.0",
+  "author": "KyaniteLabs",
+  "category": "tool",
+  "sdkVersion": "0.1.0",
+  "description": "Routes a messy stuck point to one humane next move using the canonical Unstuck Coach method: deterministic signal-map and mode-router over the vendored, hash-pinned coaching files. Gives one reflection, one next move, and one tiny check, and holds the rest of the pile. Runs entirely on your machine; it is a routing layer, not an LLM.",
+  "runtimeType": "local-service",
+  "surfaces": [],
+  "requestedCapabilities": [],
+  "provenance": {
+    "tier": "sideloaded-unverified",
+    "verificationState": "unverified",
+    "signed": false
+  },
+  "runtimeIsolation": {
+    "boundary": "host-mediated-service",
+    "supportsDegradedMode": true,
+    "requiresReviewedGrant": true
+  },
+  "providerRequirements": {
+    "sharedProfiles": [],
+    "supportsPrivateCredentials": false
+  },
+  "systemSlots": [],
+  "archiveIntegration": {
+    "readScopes": [],
+    "intakeWriteScopes": [],
+    "canRequestIngest": false,
+    "canWriteKnowledgePages": false
+  },
+  "health": {
+    "strategy": "http-json-status"
+  },
+  "service": {
+    "protocol": "http-json",
+    "entrypoint": "http://127.0.0.1:4893",
+    "healthCommand": "unstuckcoach.status"
+  },
+  "tools": [
+    {
+      "name": "unstuckcoach.status",
+      "description": "Report service version, the pinned canonical method commit, and turn counters.",
+      "requiredCapabilities": [],
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "version": { "type": "string" },
+          "method_commit": { "type": "string" },
+          "sessions": { "type": "integer" },
+          "turns_served": { "type": "integer" }
+        }
+      },
+      "audit": { "logRequest": true, "logResult": true, "artifactTypes": ["log"] },
+      "requiresHumanApproval": false
+    },
+    {
+      "name": "unstuckcoach.coach",
+      "description": "Coach one stuck point. Deterministically routes the raw, messy text via the method's signal map and mode router, then returns one reflection, one concrete next move, one tiny check, the stance, and what the coach is holding. Crisis, medication, therapy, and official-deadline inputs route to the method's boundary scripts, never to task coaching. Turns are persisted home-path-redacted under var/.",
+      "requiredCapabilities": [],
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stuck_point": { "type": "string", "minLength": 1, "maxLength": 4096, "description": "The stuck point as-is. Messy, multi-line brain dumps are valid input." },
+          "session_id": { "type": "string", "maxLength": 64, "pattern": "^[a-zA-Z0-9._-]+$" }
+        },
+        "required": ["stuck_point"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "turn": { "type": "integer" },
+          "ts": { "type": "string", "description": "Turn timestamp (UTC, YYYYMMDDTHHMMSSZ)" },
+          "stance": { "type": "string" },
+          "protocols": { "type": "array", "items": { "type": "string" } },
+          "signals": { "type": "array", "items": { "type": "string" } },
+          "life_surface": { "type": "string" },
+          "reply": { "type": "string" },
+          "held": { "type": "array", "items": { "type": "string" } },
+          "check": { "type": "string" },
+          "method_refs": { "type": "array", "items": { "type": "string" } },
+          "turn_path": { "type": ["string", "null"] }
+        }
+      },
+      "audit": { "logRequest": true, "logResult": true, "artifactTypes": ["log"] },
+      "requiresHumanApproval": false
+    }
+  ],
+  "installHooks": {
+    "onInstall": "start-unstuck-coach-service"
+  },
+  "compatibility": {
+    "shellVersion": "^0.1.0",
+    "platforms": ["macOS", "linux", "windows"]
+  }
+}
